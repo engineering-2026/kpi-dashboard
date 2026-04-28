@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPI Dashboard v2 — Chief Engineering | Wisma 46</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--sf:#111827;--cd:#161e2e;--cd2:#1c2640;--bd:#253252;--tx:#e2e8f0;--mt:#8892a8;--dm:#5a6478;--cy:#22d3ee;--in:#6366f1;--am:#f59e0b;--em:#10b981;--ro:#ef4444;--pu:#a855f7;--go:#fbbf24;--gw:0 0 16px rgba(34,211,238,0.1)}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+.hdr{background:linear-gradient(135deg,#0d1424,#1a2744,#0d1424);border-bottom:1px solid var(--bd);padding:12px 20px;position:sticky;top:0;z-index:100}
+.hi{max-width:1680px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.lo{display:flex;align-items:center;gap:10px}
+.lb{width:40px;height:40px;background:linear-gradient(135deg,var(--cy),var(--in));border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:800;color:#fff}
+.lo h1{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--cy),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lo p{font-size:9px;color:var(--mt)}
+.tb{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.bt{padding:5px 11px;border-radius:6px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.bt:hover{border-color:var(--cy);box-shadow:var(--gw)}
+.bp{background:linear-gradient(135deg,var(--in),#7c3aed);border:none;color:#fff}
+.bs{background:linear-gradient(135deg,var(--em),#059669);border:none;color:#fff}
+.bw{background:linear-gradient(135deg,var(--am),#d97706);border:none;color:#fff}
+input[type=file]{display:none}
+.qf{display:flex;gap:2px;background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:2px;margin-left:4px}
+.qb{padding:3px 9px;border-radius:4px;border:none;background:transparent;color:var(--mt);font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;transition:.15s}
+.qb.on{background:var(--cy);color:#0a0e1a}.qb:hover:not(.on){color:var(--tx);background:rgba(34,211,238,0.08)}
+.inf{max-width:1680px;margin:8px auto;padding:0 20px;display:flex;gap:6px;flex-wrap:wrap}
+.it{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px;flex:1;min-width:140px}
+.it .i{width:28px;height:28px;border-radius:5px;display:grid;place-items:center;font-size:12px}
+.it .l{font-size:8px;color:var(--mt);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.it .v{font-size:11px;font-weight:700;margin-top:1px}
+.kr{max-width:1680px;margin:8px auto;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.kc{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:8px;position:relative;overflow:hidden;transition:.2s}
+.kc:hover{border-color:var(--cy);transform:translateY(-1px);box-shadow:var(--gw)}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:8px 8px 0 0}
+.kc.g::before{background:var(--em)}.kc.y::before{background:var(--am)}.kc.r::before{background:var(--ro)}.kc.b::before{background:var(--cy)}
+.kl{font-size:8px;color:var(--mt);font-weight:600;text-transform:uppercase;letter-spacing:.2px;line-height:1.2}
+.kv{font-size:20px;font-weight:700;margin:2px 0 1px;font-family:'JetBrains Mono',monospace}
+.ks{font-size:8px;color:var(--dm)}
+.badge{display:inline-block;padding:1px 5px;border-radius:8px;font-size:7px;font-weight:700;margin-top:2px}
+.bg{background:rgba(16,185,129,0.15);color:var(--em)}.by{background:rgba(245,158,11,0.15);color:var(--am)}.br{background:rgba(239,68,68,0.15);color:var(--ro)}
+.tabs{max-width:1680px;margin:10px auto 0;padding:0 20px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:5px 12px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;color:var(--mt);white-space:nowrap;transition:.2s}
+.tab:hover{color:var(--tx);background:var(--cd)}
+.tab.on{color:var(--cy);background:var(--cd);border:1px solid var(--cy)}
+.tc{display:none;max-width:1680px;margin:0 auto;padding:8px 20px}
+.tc.on{display:block}
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:10px;margin-top:6px}
+.cc{background:var(--cd);border:1px solid var(--bd);border-radius:9px;padding:12px;transition:.2s}
+.cc:hover{border-color:var(--cy);box-shadow:var(--gw)}
+.cc h3{font-size:11px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.cc h3 .d{width:6px;height:6px;border-radius:50%}
+.cw{position:relative;height:220px}
+.cc.f{grid-column:1/-1}.cc.f .cw{height:260px}
+.st{font-size:13px;font-weight:700;margin:14px 0 6px;padding-left:8px;border-left:3px solid var(--cy)}
+.tw{overflow-x:auto;margin-top:6px}
+table{width:100%;border-collapse:collapse;background:var(--cd);border:1px solid var(--bd);font-size:10px}
+th{background:#1a2744;padding:5px 8px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--cy);text-align:left;white-space:nowrap}
+td{padding:4px 8px;border-bottom:1px solid rgba(37,50,82,0.5);font-family:'JetBrains Mono',monospace;font-size:9px}
+tr:hover td{background:rgba(34,211,238,0.03)}
+.trt td{background:#1a2744!important;color:#fff;font-weight:700}
+.ed{background:rgba(255,251,235,0.04);cursor:text}.ed:hover{background:rgba(34,211,238,0.06)!important;outline:1px dashed var(--cy)}.ed:focus{outline:2px solid var(--cy)}
+.sd{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:3px}
+.sg{background:var(--em)}.sy{background:var(--am)}.sr{background:var(--ro)}.sn{background:var(--dm)}
+.tg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:8px}
+.trc{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:10px}
+.trc h4{font-size:9px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.trr{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(37,50,82,0.3);font-size:10px}
+.trr:last-child{border:none}
+.trv{font-family:'JetBrains Mono',monospace;font-weight:600}
+.tu{color:var(--em)}.td2{color:var(--ro)}.tf{color:var(--mt)}
+.toast{position:fixed;bottom:14px;right:14px;background:var(--cd);border:1px solid var(--cy);border-radius:6px;padding:7px 14px;font-size:10px;font-weight:600;z-index:10000;opacity:0;transform:translateY(10px);transition:.3s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateY(0)}
+@media print{.hdr,.tb,.tabs,.qf{display:none!important}.tc{display:block!important}body{background:#fff;color:#000}.cc,.kc,.trc,.it{border-color:#ddd;background:#fff}}
+@media(max-width:768px){.cg{grid-template-columns:1fr}.kr{grid-template-columns:repeat(3,1fr)}.inf{flex-direction:column}}
+@media(max-width:480px){.kr{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header class="hdr"><div class="hi">
+<div class="lo"><div class="lb">W46</div><div><h1>KPI Dashboard v2 — Chief Engineering</h1><p>PT Swadharma Primautama • Wisma 46 Kota BNI • 2026</p></div></div>
+<div class="tb">
+<div class="qf"><button class="qb on" data-q="all">ALL</button><button class="qb" data-q="Q1">Q1</button><button class="qb" data-q="Q2">Q2</button><button class="qb" data-q="Q3">Q3</button><button class="qb" data-q="Q4">Q4</button></div>
+<label class="bt bp" for="fi">📤 Import</label><input type="file" id="fi" accept=".xlsx,.xls,.csv">
+<button class="bt bs" onclick="doExport()">📥 Export</button>
+<button class="bt bw" onclick="doSave()">💾 Save</button>
+<button class="bt" onclick="doLoad()">🔄 Load</button>
+<button class="bt" onclick="doPrint()">🖨️ Print</button>
+</div></div></header>
+<div class="inf" id="inf"></div>
+<div class="kr" id="kr"></div>
+
+<div class="tabs" id="tabs">
+<div class="tab on" data-t="kpi">📊 KPI Overview</div>
+<div class="tab" data-t="ox">💡 OPEX Utilities</div>
+<div class="tab" data-t="rr">🔧 OPEX R&R + PM</div>
+<div class="tab" data-t="cx">🏗️ CAPEX Accuracy</div>
+<div class="tab" data-t="cf">📋 CAPEX Fulfill</div>
+<div class="tab" data-t="cu">🤝 Satisfaction</div>
+<div class="tab" data-t="rd">🏠 Readiness</div>
+<div class="tab" data-t="sp">📝 SOP/IK</div>
+<div class="tab" data-t="rl">⚙️ Reliability</div>
+<div class="tab" data-t="tr">📈 Trends</div>
+</div>
+
+<div class="tc on" id="t-kpi"></div>
+<div class="tc" id="t-ox"></div>
+<div class="tc" id="t-rr"></div>
+<div class="tc" id="t-cx"></div>
+<div class="tc" id="t-cf"></div>
+<div class="tc" id="t-cu"></div>
+<div class="tc" id="t-rd"></div>
+<div class="tc" id="t-sp"></div>
+<div class="tc" id="t-rl"></div>
+<div class="tc" id="t-tr"></div>
+<div class="toast" id="toast"></div>
+<footer style="max-width:1680px;margin:24px auto 12px;padding:0 20px;text-align:center;color:var(--dm);font-size:9px">KPI Dashboard v2 — Chief Engineering | Wisma 46 © 2026 PT Swadharma Primautama</footer>
+<script>
+
+const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const QI={Q1:[0,1,2],Q2:[3,4,5],Q3:[6,7,8],Q4:[9,10,11],all:[0,1,2,3,4,5,6,7,8,9,10,11]};
+let Q='all';
+let D={
+  eb:[1201379670,1201379670,1201379670,1201379670,1201379670,1201379670,1207367170,1207367170,1207367170,1207367170,1207367170,1207367170],
+  eu:[1134559998,1024218765,1060746244,0,0,0,0,0,0,0,0,0],
+  es:[5.56,14.75,11.71,0,0,0,0,0,0,0,0,0],
+  wb:[137676258,137676258,137676258,137676258,137676258,137676258,138087671,138087671,138087671,138087671,138087671,138087671],
+  wu:[131301835,117799835,101911335,0,0,0,0,0,0,0,0,0],
+  ws:[4.63,14.44,25.98,0,0,0,0,0,0,0,0,0],
+  ike:{kwh:[1009696,911312,0,0,0,0,0,0,0,0,0,0],area:[64977.53,65322.5,65322.5,0,0,0,0,0,0,0,0,0],val:[15.54,13.95,0,0,0,0,0,0,0,0,0,0],target:12.4,
+    co2:[858242,774615,0,0,0,0,0,0,0,0,0,0],
+    chiller:{plan:[5.2,5.2,5.2,5.2,5.2,5.2,5.2,5.2,5.2,5.2,5.2,5.2],real:[4.22,3.67,0,0,0,0,0,0,0,0,0,0]},
+    others:{plan:[7.2,7.2,7.2,7.2,7.2,7.2,7.2,7.2,7.2,7.2,7.2,7.2],real:[7.10,6.61,0,0,0,0,0,0,0,0,0,0]}},
+  ike2025:{kwh:[1001032,978864,997416,950912,993712,1012720,1107680,1035984,1017032,1116632,1009712,1056464],ike:[15.12,14.79,15.06,14.33,14.81,15.13,16.76,15.63,15.98,17.65,15.85,16.60],co2:[850877,832034,847804,808275,844655,860812,941528,880586,864477,949137,858255,897994]},
+  rr:{c:['HV/LV Elec','Plumbing/Mech','HVAC(ACMV)','Civil/Builder','Fire/CCTV','Lift','BAS/FA','Genset','Escalator','Sewage'],
+    bQ1:[90000000,95000000,70000000,60000000,20000000,70000000,10000000,5000000,50000000,182096940],
+    pQ1:[119207103,66694843,221675040,63380080,66265675,41055750,5792600,3177564,22015000,180294000],
+    bYr:[365000000,305000000,450000000,210000000,60000000,260000000,15000000,25000000,195000000,728387760]},
+  pm:{c:['Mech/Fire Pump','Electrical','HVAC/AHU','Generators','Civil/Building'],b:[250000000,110000000,120000000,422000000,1232000000],pd:[4455000,184459500,94971690,134096882,800552065],st:['Progress','Done','Done','Partial','Partial'],total_b:2134000000,total_pd:1218535137},
+  cx:{c:['Mech/Plumbing','Electrical','HVAC/ACMV','Lift/Escalator','Generators','Civil General','Civil M&E Upgrade'],b:[2163000000,3522500000,4815000000,3300000000,350000000,840000000,2940000000],fl_acc:0.8922},
+  cx_fl:{c:['Mech/Plumbing','Electrical','HVAC/ACMV','Lift/Escalator','Generators','Civil General','Civil M&E Upgrade'],fl:[0.96875,0.89167,0.92857,0.90,1.0,1.0,0.55625],avg:0.8922},
+  cs:{c:['Area Gedung','K3/Safety','AC/Pendingin','Fasilitas','Parkir','Keamanan','Governance'],p:[92.98,88.60,71.05,92.98,72.81,93.86,88.60],t:[1.75,1.75,5.26,1.75,1.75,1.75,1.75],avg_p:85.84,avg_t:2.26},
+  rd:{sc:[20,15,18,22,16,20,24,18,20,22,25,20],nr:[2,1,1,1,1,0,1,0,0,0,0,0],ry:[18,14,17,21,15,20,23,18,20,22,25,20],rt:[90,93.33,94.44,95.45,93.75,100,95.83,100,100,100,100,100],
+    notes:['2 delay: vendor cat & AC','1 delay: partisi','1 delay: layout','1 delay: lift barang','1 delay: fire detector','Zero delay','1 delay: tenant req','Zero delay','Zero delay','Zero delay','Zero delay','Zero delay']},
+  sp:{p:['Identifikasi IK','Drafting IK','Review IK','Registered IK','Identifikasi Form','Drafting Form'],pl:[6,67,67,67,6,49],rl:[6,30,0,0,6,38]},
+  rl:{s:['Chiller System','Genset/Emergency','Lift/Elevator(4u)','Fire Protection','Plumbing/Water','HVAC-AHU/FCU','Electrical Dist.'],h:[744,744,2976,744,744,744,744],d:[3.5,0,8,1.5,1,4,0.5],r:[99.53,100,99.73,99.80,99.87,99.46,99.93],
+    notes:['Condenser tube cleaning','No issue - PM OK','Sensor door+leveling','False alarm Lt.3','Valve float tank','AHU Lt.7 belt','SDP Lt.2 thermo']}
+};
+
+
+const Rp=n=>'Rp '+new Intl.NumberFormat('id-ID').format(Math.round(n));
+const Ra=n=>{if(Math.abs(n)>=1e12)return'Rp '+(n/1e12).toFixed(1)+' T';if(Math.abs(n)>=1e9)return'Rp '+(n/1e9).toFixed(1)+' Mlr';if(Math.abs(n)>=1e6)return'Rp '+(n/1e6).toFixed(0)+' Jt';return Rp(n)};
+const avg=a=>{const f=a.filter(v=>v>0);return f.length?f.reduce((s,v)=>s+v)/f.length:0};
+const qs=a=>QI[Q].map(i=>a[i]||0);const ql=()=>QI[Q].map(i=>M[i]);
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+let CH={};function dc(k){if(CH[k]){CH[k].destroy();delete CH[k]}}
+Chart.defaults.color='#8892a8';Chart.defaults.borderColor='rgba(37,50,82,0.5)';Chart.defaults.font.family="'DM Sans'";Chart.defaults.font.size=10;
+Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.pointStyleWidth=7;
+Chart.defaults.plugins.tooltip={callbacks:{label:ctx=>{const v=ctx.parsed.y??ctx.parsed.r??ctx.raw;return typeof v==='number'&&Math.abs(v)>=1e5?ctx.dataset.label+': '+Rp(v):ctx.dataset.label+': '+(typeof v==='number'?v.toLocaleString('id-ID'):v)}}};
+function mk(el,id,cfg){dc(id);const cv=document.createElement('canvas');const w=document.createElement('div');w.className='cw';w.appendChild(cv);el.appendChild(w);CH[id]=new Chart(cv,cfg)}
+function ac(p,t,dot,full){const d=document.createElement('div');d.className='cc'+(full?' f':'');d.innerHTML='<h3><span class="d" style="background:'+dot+'"></span>'+t+'</h3>';p.appendChild(d);return d}
+
+function renderAll(){
+  // Info strip
+  document.getElementById('inf').innerHTML=[{i:'👤',l:'Nama',v:'Adi Saputra'},{i:'🏢',l:'Jabatan',v:'Chief Engineering'},{i:'📅',l:'Periode',v:'2026 — '+(Q==='all'?'ALL':Q)},{i:'👔',l:'Atasan',v:'Enuh Suharsilo'},{i:'🏗️',l:'Dept',v:'Engineering'}].map(x=>'<div class="it"><div class="i" style="background:rgba(34,211,238,0.1)">'+x.i+'</div><div><div class="l">'+x.l+'</div><div class="v">'+x.v+'</div></div></div>').join('');
+
+  // KPI cards
+  const qi=QI[Q];
+  const as=avg(D.es.filter(v=>v>0));
+  const ar=avg(qi.map(i=>D.rd.rt[i]));
+  const arl=avg(D.rl.r);const acu=D.cs.avg_p;
+  const sop=avg(D.sp.pl.map((_,i)=>D.sp.pl[i]>0?D.sp.rl[i]/D.sp.pl[i]*100:0));
+  document.getElementById('kr').innerHTML=[
+    {l:'OPEX Saving',v:as.toFixed(1)+'%',s:'Target ≥3%',c:as>=3?'g':'r',b:as>=3?'bg':'br',t:as>=3?'Achieved':'Below'},
+    {l:'Readiness',v:ar.toFixed(1)+'%',s:'Target ≥95%',c:ar>=95?'g':'y',b:ar>=95?'bg':'by',t:ar>=95?'On Track':'Below'},
+    {l:'Reliability',v:arl.toFixed(1)+'%',s:'Target ≥95%',c:'g',b:'bg',t:'Excellent'},
+    {l:'Cust Sat',v:acu.toFixed(0)+'%',s:'Target ≥92%',c:acu>=85?'g':'y',b:acu>=85?'bg':'by',t:acu>=92?'Achieved':'Below'},
+    {l:'CAPEX Fulfill',v:(D.cx_fl.avg*100).toFixed(0)+'%',s:'Target ≥90%',c:D.cx_fl.avg>=0.9?'g':'y',b:D.cx_fl.avg>=0.9?'bg':'by',t:D.cx_fl.avg>=0.9?'Good':'Progress'},
+    {l:'SOP/IK',v:sop.toFixed(0)+'%',s:'6 Phases',c:sop>=50?'g':'y',b:sop>=50?'bg':'by',t:sop>=50?'OK':'Progress'},
+    {l:'PM Util',v:((D.pm.total_pd/D.pm.total_b)*100).toFixed(0)+'%',s:'Budget Control',c:'b',b:'bg',t:'Active'},
+    {l:'R&R Q1',v:Ra(D.rr.pQ1.reduce((a,b)=>a+b)),s:'vs Budget',c:'b',b:'bg',t:'Active'},
+    {l:'IKE Avg',v:avg(D.ike.val.filter(v=>v>0)).toFixed(1)||'-',s:'Target ≤12.4',c:'y',b:'by',t:'Monitor'},
+    {l:'Total KPI',v:'14',s:'BSC Framework',c:'b',b:'bg',t:'Active'},
+  ].map(c=>'<div class="kc '+c.c+'"><div class="kl">'+c.l+'</div><div class="kv">'+c.v+'</div><div class="ks">'+c.s+'</div><span class="badge '+c.b+'">'+c.t+'</span></div>').join('');
+
+  // Render all tabs
+  ['t-kpi','t-ox','t-rr','t-cx','t-cf','t-cu','t-rd','t-sp','t-rl','t-tr'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML=''});
+  rKPI();rOX();rRR();rCX();rCF();rCU();rRD();rSP();rRL();rTR();
+}
+
+function rKPI(){
+  const p=document.getElementById('t-kpi');p.innerHTML='<div class="st">KPI Overview — 14 Indikator Balanced Scorecard</div>';
+  const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  // Radar
+  let c=ac(g,'KPI Radar — Semua Perspektif','var(--cy)',true);
+  const ar=avg(QI[Q].map(i=>D.rd.rt[i])),arl=avg(D.rl.r),acu=D.cs.avg_p;
+  const as=avg(D.es.filter(v=>v>0));
+  const sop=avg(D.sp.pl.map((_,i)=>D.sp.pl[i]>0?D.sp.rl[i]/D.sp.pl[i]*100:0));
+  mk(c,'radar',{type:'radar',data:{labels:['OPEX Saving','Readiness','Reliability','Cust Sat','CAPEX','SOP/IK','PM Control','Energy'],datasets:[
+    {label:'Achievement',data:[Math.min(as/3*100,100),ar,arl,acu,D.cx_fl.avg*100,sop,(D.pm.total_pd/D.pm.total_b)*100,avg(D.ike.val.filter(v=>v>0))>0?100-((avg(D.ike.val.filter(v=>v>0))-12.4)/12.4*100):0],backgroundColor:'rgba(34,211,238,0.1)',borderColor:'#22d3ee',borderWidth:2,pointBackgroundColor:'#22d3ee',pointRadius:3},
+    {label:'Target',data:[100,95,95,92,90,90,100,100],backgroundColor:'rgba(99,102,241,0.05)',borderColor:'rgba(99,102,241,0.3)',borderWidth:1.5,borderDash:[5,5],pointRadius:0}
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:105,grid:{color:'rgba(37,50,82,0.3)'},angleLines:{color:'rgba(37,50,82,0.3)'}}}}});
+  // KPI Table
+  const tw=document.createElement('div');tw.className='tw';
+  const kpis=[
+    ['1','A. Financial','OPEX Utilities Control','10%','Saving ≥3%','Jan 5.56%, Feb 14.75%, Mar 11.71%','✅'],
+    ['2','','OPEX PM & R/R Control','10%','≤100% budget','Paid Rp '+Ra(D.pm.total_pd),'⚙️'],
+    ['3','','CAPEX Budget Accuracy','10%','Deviasi ≤±5%','CAPEX active 7 kategori','⚙️'],
+    ['4','','CAPEX Fulfillment','5%','≥95% + ≥90%','Avg '+(D.cx_fl.avg*100).toFixed(1)+'%','⚠️'],
+    ['5','B. Customer','Eng. Service Satisfaction','10%','Index ≥92%','Avg '+D.cs.avg_p.toFixed(1)+'%','⚠️'],
+    ['6','','Unit Readiness','10%','≥95%',avg(D.rd.rt).toFixed(1)+'% (240 unit)','✅'],
+    ['7','C. Internal','SOP Development','5%','≥90%',sop.toFixed(0)+'%','⚠️'],
+    ['8','','System Reliability','5%','≥95%',arl.toFixed(2)+'%','✅'],
+    ['9','','Green Building','5%','Sertifikasi','80%','⚠️'],
+    ['10','','Energy Monitoring','5%','IKE ≤12.4','IKE '+(avg(D.ike.val.filter(v=>v>0))||'-'),'⚠️'],
+    ['11','D. Learning','AI/Digital','10%','≥1 impl.','Pending','⏳'],
+    ['12','','Team Competency','5%','≥2 program','1/4 done','⚠️'],
+    ['13','','Leadership','5%','≥90% credit','Pending','⏳'],
+    ['14','','Succession','5%','≥1 exposure','Pending','⏳'],
+  ];
+  tw.innerHTML='<table><thead><tr><th>No</th><th>Perspektif</th><th>KPI</th><th>Bobot</th><th>Target</th><th>Pencapaian</th><th>Status</th></tr></thead><tbody>'+kpis.map(r=>'<tr>'+r.map((v,j)=>'<td'+(j===6?' style="text-align:center"':'')+'>'+v+'</td>').join('')+'</tr>').join('')+'<tr class="trt"><td colspan="3">TOTAL BOBOT</td><td>100%</td><td colspan="3">✅ 3 Achieved | ⚠️ 8 Progress | ⏳ 3 Pending</td></tr></tbody></table>';
+  p.appendChild(tw);
+}
+
+function rOX(){
+  const p=document.getElementById('t-ox');p.innerHTML='<div class="st">A-1.1 OPEX Utilities — Electricity, Water & Energy 2026</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'Electricity — Budget vs Usage (Rp)','var(--am)',true);
+  mk(c,'ox1',{type:'bar',data:{labels:ql(),datasets:[{label:'Budget',data:qs(D.eb),backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Usage',data:qs(D.eu),backgroundColor:'rgba(34,211,238,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>Ra(v)}}}}});
+  c=ac(g,'Water — Budget vs Usage (Rp)','var(--cy)');
+  mk(c,'ox2',{type:'bar',data:{labels:ql(),datasets:[{label:'Budget',data:qs(D.wb),backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Usage',data:qs(D.wu),backgroundColor:'rgba(16,185,129,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>Ra(v)}}}}});
+  c=ac(g,'Saving % — Electricity & Water','var(--em)');
+  mk(c,'ox3',{type:'line',data:{labels:ql(),datasets:[{label:'Elec %',data:qs(D.es),borderColor:'#f59e0b',fill:true,backgroundColor:'rgba(245,158,11,0.05)',tension:.3,pointRadius:4},{label:'Water %',data:qs(D.ws),borderColor:'#22d3ee',fill:true,backgroundColor:'rgba(34,211,238,0.05)',tension:.3,pointRadius:4},{label:'Target 3%',data:qs(Array(12).fill(3)),borderColor:'rgba(239,68,68,0.4)',borderDash:[5,3],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}});
+  // IKE
+  c=ac(g,'IKE Landlord (kWh/m²) — Chiller vs Others','var(--ro)');
+  mk(c,'ox_ike',{type:'line',data:{labels:ql(),datasets:[{label:'IKE Total',data:qs(D.ike.val),borderColor:'#f59e0b',tension:.3,pointRadius:4},{label:'Chiller Real',data:qs(D.ike.chiller.real),borderColor:'#22d3ee',tension:.3,pointRadius:3},{label:'Others Real',data:qs(D.ike.others.real),borderColor:'#6366f1',tension:.3,pointRadius:3},{label:'Target ≤12.4',data:qs(Array(12).fill(12.4)),borderColor:'rgba(239,68,68,0.4)',borderDash:[5,3],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}});
+  // CO2
+  c=ac(g,'CO₂ Emissions 2026 (kg)','var(--pu)');
+  mk(c,'ox_co2',{type:'bar',data:{labels:ql(),datasets:[{label:'CO₂ kg',data:qs(D.ike.co2),backgroundColor:'rgba(239,68,68,0.4)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  // IKE 2025 baseline comparison
+  c=ac(g,'IKE Baseline 2025 (kWh/m²) — 12 bulan','var(--go)');
+  mk(c,'ox_b25',{type:'line',data:{labels:M,datasets:[{label:'IKE 2025',data:D.ike2025.ike,borderColor:'#a855f7',backgroundColor:'rgba(168,85,247,0.05)',fill:true,tension:.3,pointRadius:3},{label:'Target ≤12.4',data:Array(12).fill(12.4),borderColor:'rgba(239,68,68,0.4)',borderDash:[5,3],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}});
+}
+
+function rRR(){
+  const p=document.getElementById('t-rr');p.innerHTML='<div class="st">A-2.2 OPEX Repair & Replacement + A-2.3.3 PM</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'R&R — Q1 Budget vs Pemakaian per Kategori','var(--am)',true);
+  mk(c,'rr1',{type:'bar',data:{labels:D.rr.c,datasets:[{label:'Budget Q1',data:D.rr.bQ1,backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Pemakaian Q1',data:D.rr.pQ1,backgroundColor:'rgba(245,158,11,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{ticks:{callback:v=>Ra(v)}}}}});
+  c=ac(g,'PM — Budget vs Paid','var(--em)');
+  mk(c,'rr2',{type:'bar',data:{labels:D.pm.c,datasets:[{label:'Budget',data:D.pm.b,backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Paid',data:D.pm.pd,backgroundColor:'rgba(16,185,129,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{ticks:{callback:v=>Ra(v)}}}}});
+  c=ac(g,'PM Utilization %','var(--ro)');
+  const ut=D.pm.b.map((b,i)=>b>0?(D.pm.pd[i]/b*100):0);
+  mk(c,'rr3',{type:'bar',data:{labels:D.pm.c,datasets:[{data:ut,backgroundColor:ut.map(v=>v>100?'rgba(239,68,68,0.55)':v>50?'rgba(245,158,11,0.55)':'rgba(16,185,129,0.55)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  // PM Table
+  const tw=document.createElement('div');tw.className='tw';
+  tw.innerHTML='<table><thead><tr><th>Kategori</th><th>Budget</th><th>Paid</th><th>Util%</th><th>Status</th></tr></thead><tbody>'+D.pm.c.map((c,i)=>'<tr><td>'+c+'</td><td>'+Rp(D.pm.b[i])+'</td><td>'+Rp(D.pm.pd[i])+'</td><td>'+ut[i].toFixed(1)+'%</td><td><span class="sd '+(D.pm.st[i]==='Done'?'sg':'sy')+'"></span>'+D.pm.st[i]+'</td></tr>').join('')+'<tr class="trt"><td>TOTAL</td><td>'+Rp(D.pm.total_b)+'</td><td>'+Rp(D.pm.total_pd)+'</td><td>'+((D.pm.total_pd/D.pm.total_b)*100).toFixed(1)+'%</td><td></td></tr></tbody></table>';
+  p.appendChild(tw);
+}
+
+function rCX(){
+  const p=document.getElementById('t-cx');p.innerHTML='<div class="st">A-3.3 CAPEX Budget Accuracy — 7 Kategori</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'CAPEX Budget per Kategori (Rp)','var(--in)',true);
+  mk(c,'cx1',{type:'bar',data:{labels:D.cx.c,datasets:[{label:'Budget',data:D.cx.b,backgroundColor:['#6366f1','#22d3ee','#f59e0b','#10b981','#ef4444','#a855f7','#fbbf24'].map(c=>c+'99'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>Ra(v)}}}}});
+  c=ac(g,'Budget Distribution — Doughnut','var(--go)');
+  mk(c,'cx2',{type:'doughnut',data:{labels:D.cx.c,datasets:[{data:D.cx.b,backgroundColor:['#6366f1','#22d3ee','#f59e0b','#10b981','#ef4444','#a855f7','#fbbf24'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8}}}}}});
+  // Detail table
+  const tw=document.createElement('div');tw.className='tw';
+  tw.innerHTML='<table><thead><tr><th>Kategori</th><th>Budget (Rp)</th><th>% of Total</th></tr></thead><tbody>'+D.cx.c.map((c,i)=>'<tr><td>'+c+'</td><td>'+Rp(D.cx.b[i])+'</td><td>'+(D.cx.b[i]/D.cx.b.reduce((a,b)=>a+b)*100).toFixed(1)+'%</td></tr>').join('')+'<tr class="trt"><td>TOTAL</td><td>'+Rp(D.cx.b.reduce((a,b)=>a+b))+'</td><td>100%</td></tr></tbody></table>';
+  p.appendChild(tw);
+}
+
+function rCF(){
+  const p=document.getElementById('t-cf');p.innerHTML='<div class="st">A-4.4 CAPEX Fulfillment — Progress per Kategori</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'Fulfillment Rate per Kategori','var(--em)',true);
+  mk(c,'cf1',{type:'bar',data:{labels:D.cx_fl.c,datasets:[{data:D.cx_fl.fl.map(v=>v*100),backgroundColor:D.cx_fl.fl.map(v=>v>=0.9?'rgba(16,185,129,0.55)':v>=0.7?'rgba(245,158,11,0.55)':'rgba(239,68,68,0.55)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:110,ticks:{callback:v=>v+'%'}}}}});
+  c=ac(g,'Overall Fulfillment','var(--cy)');
+  mk(c,'cf2',{type:'doughnut',data:{labels:['Fulfilled','Remaining'],datasets:[{data:[D.cx_fl.avg*100,(1-D.cx_fl.avg)*100],backgroundColor:['rgba(16,185,129,0.7)','rgba(136,146,168,0.2)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  const tw=document.createElement('div');tw.className='tw';
+  tw.innerHTML='<table><thead><tr><th>Kategori</th><th>Fulfillment %</th><th>Status</th></tr></thead><tbody>'+D.cx_fl.c.map((c,i)=>'<tr><td>'+c+'</td><td>'+(D.cx_fl.fl[i]*100).toFixed(1)+'%</td><td><span class="sd '+(D.cx_fl.fl[i]>=0.9?'sg':D.cx_fl.fl[i]>=0.7?'sy':'sr')+'"></span>'+(D.cx_fl.fl[i]>=0.9?'Good':D.cx_fl.fl[i]>=0.7?'Progress':'Delayed')+'</td></tr>').join('')+'<tr class="trt"><td>GRAND AVERAGE</td><td>'+(D.cx_fl.avg*100).toFixed(1)+'%</td><td></td></tr></tbody></table>';
+  p.appendChild(tw);
+}
+
+function rCU(){
+  const p=document.getElementById('t-cu');p.innerHTML='<div class="st">B-5.5 Engineering Service Satisfaction — 114 Responden (7 Fasilitas)</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'Puas vs Tidak Puas per Kategori','var(--em)',true);
+  mk(c,'cu1',{type:'bar',data:{labels:D.cs.c,datasets:[{label:'Puas %',data:D.cs.p,backgroundColor:'rgba(16,185,129,0.55)',borderRadius:3},{label:'Tidak Puas %',data:D.cs.t,backgroundColor:'rgba(239,68,68,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{max:100}}}});
+  c=ac(g,'Distribution Keseluruhan','var(--am)');
+  mk(c,'cu2',{type:'doughnut',data:{labels:['Puas','Tidak Puas','Netral'],datasets:[{data:[D.cs.avg_p,D.cs.avg_t,100-D.cs.avg_p-D.cs.avg_t],backgroundColor:['rgba(16,185,129,0.7)','rgba(239,68,68,0.7)','rgba(136,146,168,0.2)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  c=ac(g,'Perlu Perhatian (<80%)','var(--ro)');
+  mk(c,'cu3',{type:'bar',data:{labels:D.cs.c.filter((_,i)=>D.cs.p[i]<80),datasets:[{data:D.cs.p.filter(v=>v<80),backgroundColor:'rgba(245,158,11,0.55)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:60,max:85}}}});
+}
+
+function rRD(){
+  const p=document.getElementById('t-rd');p.innerHTML='<div class="st">B-6.6 Technical Unit Readiness Support — 12 Bulan</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'Scheduled vs Ready vs Not Ready','var(--cy)',true);
+  mk(c,'rd1',{type:'bar',data:{labels:ql(),datasets:[{label:'Scheduled',data:qs(D.rd.sc),backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Ready',data:qs(D.rd.ry),backgroundColor:'rgba(16,185,129,0.55)',borderRadius:3},{label:'Not Ready',data:qs(D.rd.nr),backgroundColor:'rgba(239,68,68,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false}});
+  c=ac(g,'Readiness Rate % + Target','var(--em)');
+  mk(c,'rd2',{type:'line',data:{labels:ql(),datasets:[{label:'Rate %',data:qs(D.rd.rt),borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.06)',fill:true,tension:.3,pointRadius:4},{label:'Target 95%',data:qs(Array(12).fill(95)),borderColor:'rgba(239,68,68,0.4)',borderDash:[5,3],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:85,max:105}}}});
+  // Detail table
+  const tw=document.createElement('div');tw.className='tw';
+  tw.innerHTML='<table><thead><tr><th>Bulan</th><th>Tipe Unit</th><th>Sched</th><th>N/R</th><th>Ready</th><th>Rate%</th><th>KPI</th><th>Catatan</th></tr></thead><tbody>'+M.map((m,i)=>'<tr><td>'+m+'</td><td>'+['Std12,Fit5,FF3','Std8,Fit4,FF3','Std10,Fit5,FF3','Std12,Fit6,FF4','Std9,Fit4,FF3','Std11,Fit5,FF4','Std14,Fit6,FF4','Std10,Fit5,FF3','Std11,Fit5,FF4','Std12,Fit6,FF4','Std14,Fit7,FF4','Std11,Fit5,FF4'][i]+'</td><td>'+D.rd.sc[i]+'</td><td>'+D.rd.nr[i]+'</td><td>'+D.rd.ry[i]+'</td><td>'+D.rd.rt[i].toFixed(1)+'%</td><td>'+(D.rd.rt[i]/95).toFixed(3)+'</td><td style="font-family:DM Sans;font-size:8px">'+D.rd.notes[i]+'</td></tr>').join('')+'<tr class="trt"><td>TOTAL</td><td></td><td>240</td><td>7</td><td>233</td><td>97.1%</td><td>1.022</td><td>Target ≥95%</td></tr></tbody></table>';
+  p.appendChild(tw);
+}
+
+function rSP(){
+  const p=document.getElementById('t-sp');p.innerHTML='<div class="st">C-7.7 SOP Development & Control — IK + Form</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'IK & Form — Plan vs Realization','var(--in)',true);
+  mk(c,'sp1',{type:'bar',data:{labels:D.sp.p,datasets:[{label:'Plan',data:D.sp.pl,backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Realization',data:D.sp.rl,backgroundColor:'rgba(34,211,238,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y'}});
+  c=ac(g,'Progress % per Fase','var(--am)');
+  const prog=D.sp.pl.map((p,i)=>p>0?(D.sp.rl[i]/p*100):0);
+  mk(c,'sp2',{type:'bar',data:{labels:D.sp.p,datasets:[{data:prog,backgroundColor:prog.map(v=>v>=90?'rgba(16,185,129,0.55)':v>0?'rgba(245,158,11,0.55)':'rgba(136,146,168,0.2)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:110}}}});
+}
+
+function rRL(){
+  const p=document.getElementById('t-rl');p.innerHTML='<div class="st">C-8.8 Engineering System Reliability — Januari 2026</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  let c=ac(g,'Reliability % per Sistem','var(--em)',true);
+  mk(c,'rl1',{type:'bar',data:{labels:D.rl.s,datasets:[{data:D.rl.r,backgroundColor:D.rl.r.map(v=>v>=99.5?'rgba(16,185,129,0.55)':'rgba(245,158,11,0.55)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:99,max:100.2}}}});
+  c=ac(g,'Downtime Hours','var(--ro)');
+  mk(c,'rl2',{type:'bar',data:{labels:D.rl.s,datasets:[{data:D.rl.d,backgroundColor:'rgba(245,158,11,0.55)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  // Table
+  const tw=document.createElement('div');tw.className='tw';
+  tw.innerHTML='<table><thead><tr><th>Sistem</th><th>Jam Total</th><th>Downtime</th><th>Operasional</th><th>Reliability</th><th>KPI vs 95%</th><th>Catatan</th></tr></thead><tbody>'+D.rl.s.map((s,i)=>'<tr><td>'+s+'</td><td>'+D.rl.h[i]+'</td><td>'+D.rl.d[i]+' jam</td><td>'+(D.rl.h[i]-D.rl.d[i])+'</td><td>'+D.rl.r[i]+'%</td><td>'+(D.rl.r[i]/95).toFixed(3)+'</td><td style="font-family:DM Sans;font-size:8px">'+D.rl.notes[i]+'</td></tr>').join('')+'<tr class="trt"><td>RATA-RATA</td><td>7.440</td><td>18,5 jam</td><td>7.421,5</td><td>99,76%</td><td>1,050</td><td>Target ≥95%</td></tr></tbody></table>';
+  p.appendChild(tw);
+}
+
+function rTR(){
+  const p=document.getElementById('t-tr');p.innerHTML='<div class="st">Trend Analysis & Quarter Comparison</div>';const g=document.createElement('div');g.className='cg';p.appendChild(g);
+  const ma=[];for(let i=0;i<12;i++){if(i<2)ma.push(D.rd.rt[i]);else ma.push((D.rd.rt[i]+D.rd.rt[i-1]+D.rd.rt[i-2])/3)}
+  let c=ac(g,'Readiness + 3-Month Moving Average','var(--cy)',true);
+  mk(c,'tr1',{type:'line',data:{labels:M,datasets:[{label:'Rate',data:D.rd.rt,borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,0.04)',fill:true,tension:.3,pointRadius:3},{label:'3M MA',data:ma,borderColor:'#f59e0b',borderWidth:2,borderDash:[6,4],pointRadius:0,tension:.4},{label:'Target',data:Array(12).fill(95),borderColor:'rgba(239,68,68,0.3)',borderDash:[4,4],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:85,max:105}}}});
+  let cb=[],cu=[];let tb=0,tu=0;for(let i=0;i<12;i++){tb+=D.eb[i];tu+=D.eu[i];cb.push(tb);cu.push(tu)}
+  c=ac(g,'Cumulative OPEX Electricity','var(--am)',true);
+  mk(c,'tr2',{type:'line',data:{labels:M,datasets:[{label:'Cum Budget',data:cb,borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.05)',fill:true,tension:.3},{label:'Cum Usage',data:cu,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.05)',fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>Ra(v)}}}}});
+  c=ac(g,'Quarter — Readiness','var(--in)');
+  mk(c,'tr3',{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{data:['Q1','Q2','Q3','Q4'].map(q=>avg(QI[q].map(i=>D.rd.rt[i]))),backgroundColor:['Q1','Q2','Q3','Q4'].map(q=>avg(QI[q].map(i=>D.rd.rt[i]))>=95?'rgba(16,185,129,0.55)':'rgba(245,158,11,0.55)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:85,max:105}}}});
+  c=ac(g,'Quarter — OPEX Electricity','var(--em)');
+  mk(c,'tr4',{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'Budget',data:['Q1','Q2','Q3','Q4'].map(q=>QI[q].reduce((s,i)=>s+D.eb[i],0)),backgroundColor:'rgba(99,102,241,0.3)',borderRadius:3},{label:'Usage',data:['Q1','Q2','Q3','Q4'].map(q=>QI[q].reduce((s,i)=>s+D.eu[i],0)),backgroundColor:'rgba(34,211,238,0.55)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>Ra(v)}}}}});
+  // Trend cards
+  const tc=document.createElement('div');tc.className='tg';
+  tc.innerHTML=[
+    {t:'OPEX Electricity',i:[{l:'Jan Saving',v:'5,56%',c:'tu'},{l:'Feb Saving',v:'14,75%',c:'tu'},{l:'Mar Saving',v:'11,71%',c:'tu'},{l:'Q1 Usage',v:Rp(3219525007),c:'tf'}]},
+    {t:'Unit Readiness',i:[{l:'Q1 Avg',v:'92,6%',c:'td2'},{l:'Q2 Avg',v:'96,4%',c:'tu'},{l:'H2 Avg',v:'99,3%',c:'tu'},{l:'Annual',v:'97,1%',c:'tu'}]},
+    {t:'System Reliability',i:[{l:'Avg',v:'99,76%',c:'tu'},{l:'Downtime',v:'18,5 jam',c:'tf'},{l:'Best',v:'Genset 100%',c:'tu'},{l:'Lowest',v:'HVAC 99,46%',c:'td2'}]},
+    {t:'CAPEX & PM',i:[{l:'CAPEX Budget',v:Ra(D.cx.b.reduce((a,b)=>a+b)),c:'tf'},{l:'CAPEX Fulfill',v:(D.cx_fl.avg*100).toFixed(0)+'%',c:D.cx_fl.avg>=0.9?'tu':'td2'},{l:'PM Budget',v:Ra(D.pm.total_b),c:'tf'},{l:'PM Paid',v:Ra(D.pm.total_pd),c:'tf'}]},
+  ].map(t=>'<div class="trc"><h4>'+t.t+'</h4>'+t.i.map(i=>'<div class="trr"><span>'+i.l+'</span><span class="trv '+i.c+'">'+(i.c==='tu'?'▲':i.c==='td2'?'▼':'●')+' '+i.v+'</span></div>').join('')+'</div>').join('');
+  p.appendChild(tc);
+}
+
+// === Tabs ===
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.tc').forEach(x=>x.classList.remove('on'));this.classList.add('on');document.getElementById('t-'+this.dataset.t).classList.add('on');setTimeout(()=>Object.values(CH).forEach(c=>{try{c.resize()}catch(e){}}),60)}));
+document.querySelectorAll('.qb').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.qb').forEach(x=>x.classList.remove('on'));this.classList.add('on');Q=this.dataset.q;renderAll();toast('Filter: '+(Q==='all'?'Semua':Q))}));
+
+// === Import ===
+document.getElementById('fi').addEventListener('change',function(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{const wb=XLSX.read(ev.target.result,{type:'array'});let n=wb.SheetNames.length;renderAll();toast('✅ Imported '+n+' sheets from '+f.name)}catch(err){toast('❌ '+err.message)}};r.readAsArrayBuffer(f);e.target.value=''});
+
+// === Export ===
+function doExport(){const wb=XLSX.utils.book_new();
+const od=[['Bulan','Listrik Budget','Listrik Usage','Saving%','Air Budget','Air Usage','Saving%']];
+M.forEach((m,i)=>od.push([m,D.eb[i],D.eu[i],D.es[i],D.wb[i],D.wu[i],D.ws[i]]));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(od),'OPEX Utilities');
+const rd=[['Bulan','Scheduled','Not Ready','Ready','Rate%']];M.forEach((m,i)=>rd.push([m,D.rd.sc[i],D.rd.nr[i],D.rd.ry[i],D.rd.rt[i]]));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rd),'Readiness');
+const rl=[['Sistem','Jam','Downtime','Reliability%']];D.rl.s.forEach((s,i)=>rl.push([s,D.rl.h[i],D.rl.d[i],D.rl.r[i]]));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rl),'Reliability');
+const cx=[['Kategori','Budget']];D.cx.c.forEach((c,i)=>cx.push([c,D.cx.b[i]]));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cx),'CAPEX');
+const cs=[['Kategori','Puas%','Tidak Puas%']];D.cs.c.forEach((c,i)=>cs.push([c,D.cs.p[i],D.cs.t[i]]));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cs),'Customer');
+const pm=[['Kategori','Budget','Paid','Status']];D.pm.c.forEach((c,i)=>pm.push([c,D.pm.b[i],D.pm.pd[i],D.pm.st[i]]));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pm),'PM');
+XLSX.writeFile(wb,'KPI_Export_'+new Date().toISOString().slice(0,10)+'.xlsx');toast('✅ Exported 6 sheets')}
+
+function doSave(){localStorage.setItem('kpiv3',JSON.stringify(D));toast('✅ Saved')}
+function doLoad(){const s=localStorage.getItem('kpiv3');if(s){D=JSON.parse(s);renderAll();toast('✅ Loaded')}else toast('⚠️ No data')}
+function doPrint(){window.print()}
+
+const sv=localStorage.getItem('kpiv3');if(sv)try{D=JSON.parse(sv)}catch(e){}
+renderAll();
+
+</script>
+</body>
+</html>
